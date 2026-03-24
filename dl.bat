@@ -1,0 +1,14 @@
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Rice_Plant.jpg/400px-Rice_Plant.jpg" -o frontend/crops/rice.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Cotton_Plant.jpg/400px-Cotton_Plant.jpg" -o frontend/crops/cotton.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Corn_plant.jpg/400px-Corn_plant.jpg" -o frontend/crops/maize.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Soybean.jpg/400px-Soybean.jpg" -o frontend/crops/soybean.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Arachis_hypogaea_-_Peanut_-_desc-1.jpg/400px-Arachis_hypogaea_-_Peanut_-_desc-1.jpg" -o frontend/crops/groundnut.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Brassica_napus_2.jpg/400px-Brassica_napus_2.jpg" -o frontend/crops/mustard.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Chickpea.jpg/400px-Chickpea.jpg" -o frontend/crops/gram.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Barley_%28Hordeum_vulgare_%D0%B6%D0%B8%D1%82%D0%BE%29.jpg/400px-Barley_%28Hordeum_vulgare_%D0%B6%D0%B8%D1%82%D0%BE%29.jpg" -o frontend/crops/barley.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Peas_in_pods_-_Studio.jpg/400px-Peas_in_pods_-_Studio.jpg" -o frontend/crops/peas.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Watermelon.jpg/400px-Watermelon.jpg" -o frontend/crops/watermelon.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Cucumber_in_greenhouse.jpg/400px-Cucumber_in_greenhouse.jpg" -o frontend/crops/cucumber.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Momordica_charantia_-_Bitter_melon_01.jpg/400px-Momordica_charantia_-_Bitter_melon_01.jpg" -o frontend/crops/bittergourd.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/French_Pumpkin.jpg/400px-French_Pumpkin.jpg" -o frontend/crops/pumpkin.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Mung_beans.jpg/400px-Mung_beans.jpg" -o frontend/crops/moongdal.jpg

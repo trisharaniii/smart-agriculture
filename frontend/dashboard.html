@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGROiQ | Advanced Crop Analysis Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- ✅ script.js loads AFTER supabase & chart.js are ready -->
+    <script src="script.js"></script>
+    <style>
+        :root {
+            --sidebar-bg: #2d3436;
+            --main-bg: #fdfaf5;
+            --accent-green: #7cb518;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-main: #2d3436;
+            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --bg-overlay: rgba(255, 255, 255, 0.65);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background-color: var(--main-bg);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            transition: background 0.3s ease;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            padding: 30px 0;
+            flex-shrink: 0;
+        }
+
+        .logo-container {
+            padding: 0 30px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent-green);
+            letter-spacing: 1px;
+        }
+
+        .menu-list { list-style: none; padding: 0; margin: 0; }
+
+        .menu-item {
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #bdc3c7;
+            border-left: 4px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border-left-color: var(--accent-green);
+        }
+
+        .logout-item { margin-top: auto; border-top: 1px solid #444; color: #fab1a0; }
+
+        /* --- MAIN CONTENT AREA --- */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .content-section { display: none; animation: fadeIn 0.4s ease; }
+        .content-section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h1 { font-size: 28px; margin-bottom: 30px; font-weight: 700; }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 25px;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.5);
+            margin-bottom: 25px;
+            transition: transform 0.3s ease;
+        }
+
+        .glass-card:hover { transform: translateY(-3px); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .card-header h3 { margin: 0; font-size: 18px; }
+
+        .action-btn {
+            background: var(--sidebar-bg);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: 0.3s;
+        }
+        .action-btn:hover { opacity: 0.9; transform: scale(1.02); }
+
+        .leaf-img-box { width: 100%; height: 180px; border-radius: 15px; overflow: hidden; margin-bottom: 15px; }
+        .leaf-img-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        .list-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .unread { border-left: 4px solid var(--accent-green); background: #f0f9eb; }
+
+        .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        input[type="text"], select { padding: 8px; border-radius: 6px; border: 1px solid #ddd; }
+
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="logo-container">🌿 AGROiQ</div>
+        <ul class="menu-list">
+            <li class="menu-item" onclick="showSection('home', this)"><span>🏠</span> Home</li>
+            <li class="menu-item active" onclick="showSection('dashboard', this)"><span>📊</span> Dashboard</li>
+            <li class="menu-item" onclick="showSection('notifications', this)"><span>🔔</span> Notifications</li>
+            <li class="menu-item" onclick="showSection('history', this)"><span>📜</span> History</li>
+            <li class="menu-item" onclick="showSection('settings', this)"><span>⚙️</span> Settings</li>
+            <li class="menu-item logout-item" onclick="handleLogout()"><span>🚪</span> Logout</li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        
+        <section id="home" class="content-section">
+            <h1 id="welcomeText">Welcome Farmer 👋</h1>
+            <div class="glass-card">
+                <h3>🌾 Smart Crop Recommendations</h3>
+                <p>Based on your local soil moisture and Nitrogen levels:</p>
+                <div id="cropSuggestions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-top: 20px; padding-bottom: 10px;">
+                    <!-- Dynamically populated from script.js -->
+                </div>
+            </div>
+        </section>
+
+        <section id="dashboard" class="content-section active">
+            <h1 id="dashboardTitle">Crop Analysis Dashboard</h1>
+            <div class="dashboard-grid">
+                
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>🦠 Disease Detected</h3>
+                        <span id="alertBadge" style="color: #c62828; font-weight: bold; background: #ffebee; padding: 4px 10px; border-radius: 20px; font-size: 12px;">Alert: Leaf Blight</span>
+                    </div>
+                    <div style="display: flex; gap: 20px;">
+                        <div class="leaf-img-box" style="width: 200px;">
+                            <img id="diseaseImage" src="https://images.unsplash.com/photo-1589927986089-35812388d1f4" alt="Disease">
+                        </div>
+                        <div style="flex: 1;">
+                            <p><b>Disease:</b> <span id="diseaseResult">Leaf Blight</span></p>
+                            <p><b>Confidence:</b> <span id="diseaseConfidence">94%</span></p>
+                            <canvas id="miniChart" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="card-header"><h3>☁️ Live Weather</h3></div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                       <span id="weatherTemp" style="font-size: 36px; font-weight: 800;">28.5 °C</span>
+                        <div style="text-align: right;">
+                           <strong id="weatherDesc">Sunny</strong><br>
+                            <small>Humidity: 65%</small>
+                            <p id="weatherCity">Bodhan, TS</p>
+                        </div>
+                    </div>
+                    <canvas id="tempTrendChart" style="margin-top: 20px;"></canvas>
+                </div>
+
+                <div class="glass-card">
+                    <div class="card-header"><h3>💡 Recommended Solution</h3></div>
+                    <div id="solutionContainer" style="margin-bottom: 15px;">
+                        <p id="solutionText" style="line-height: 1.5; color: #555;">Processing the best treatment for your crop...</p>
+                    </div>
+                    <button class="action-btn" onclick="applyTreatment()">Apply This Treatment</button>
+                </div>
+
+                <div class="glass-card">
+                    <div class="card-header"><h3>📍 Sensor Map</h3></div>
+                    <div style="width:100%; height: 180px; background: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800') center/cover; border-radius: 15px;"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="notifications" class="content-section">
+            <h1>Recent Notifications</h1>
+            <div class="glass-card">
+                <div class="list-item unread">
+                    <div><strong>🚨 Disease Outbreak Alert</strong><p>Leaf Blight spreading in nearby farms (2km radius).</p></div>
+                    <small>10m ago</small>
+                </div><div class="list-item">
+            <div>
+                <strong>🌧️ Weather Alert</strong>
+                <p>Heavy rainfall expected in your area. Avoid irrigation for the next 24 hours.</p>
+            </div>
+            <small>30m ago</small>
+        </div>
+
+            </div>
+        </section>
+
+        <section id="history" class="content-section">
+            <h1>Recent Searches</h1>
+            <div id="historyContainer" style="display: flex; flex-direction: column; gap: 15px;">
+                <p style="color: #666;">No history found...</p>
+            </div>
+        </section>
+
+        <section id="settings" class="content-section">
+            <h1>Settings</h1>
+            <div class="dashboard-grid">
+                <div class="glass-card">
+                    <h3>👤 Account Settings</h3>
+                    <div class="settings-row"><span>Farmer Name</span><input type="text" id="settingsName" value=""></div>
+                    <button class="action-btn" style="margin-top: 15px; background: var(--accent-green);">Save Changes</button>
+                </div>
+                <div class="glass-card">
+                    <h3>⚙️ App Preferences</h3>
+                    <div class="settings-row"><span>Dark Mode</span><input type="checkbox" onchange="toggleDarkMode()"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+ 
+    <script>
+        // NAVIGATION LOGIC
+        function showSection(sectionId, element) {
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function handleLogout() {
+            if(confirm("Are you sure you want to logout?")) {
+                alert("Logging out...");
+                window.location.href = "index.html"
+            }
+        }
+
+        // DARK MODE
+        function toggleDarkMode() {
+            const root = document.documentElement;
+            const isDark = root.style.getPropertyValue('--main-bg') === '#1e272e';
+            if(!isDark) {
+                root.style.setProperty('--main-bg', '#1e272e');
+                root.style.setProperty('--card-bg', 'rgba(45, 52, 54, 0.95)');
+                root.style.setProperty('--text-main', '#ffffff');
+                root.style.setProperty('--bg-overlay', 'rgba(0, 0, 0, 0.7)');
+            } else {
+                root.style.setProperty('--main-bg', '#fdfaf5');
+                root.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.9)');
+                root.style.setProperty('--text-main', '#2d3436');
+                root.style.setProperty('--bg-overlay', 'rgba(255, 255, 255, 0.65)');
+            }
+        }
+        function applyTreatment() {
+            alert("Treatment plan has been sent to your connected smart sprayer!");
+        }
+
+        // CHARTS & INITIALIZATION
+        window.onload = function() {
+            // ✅ loadDashboard is defined in script.js, call it directly
+            if (typeof loadDashboard === 'function') loadDashboard();
+
+            const ctx1 = document.getElementById('miniChart').getContext('2d');
+            new Chart(ctx1,{
+                type:'line',
+                data:{
+                    labels:['Jan','Feb','Mar','Apr'],
+                    datasets:[{
+                        data:[20,45,75,94],
+                        borderColor:'#7cb518',
+                        pointRadius:0,
+                        fill:false,
+                        tension:0.4
+                    }]
+                },
+                options:{
+                    plugins:{legend:{display:false}},
+                    scales:{x:{display:false},y:{display:false}}
+                }
+            });
+
+            const ctx2 = document.getElementById('tempTrendChart').getContext('2d');
+            new Chart(ctx2,{
+                type:'bar',
+                data:{
+                    labels:['6am','12pm','6pm','12am'],
+                    datasets:[{
+                        label:'Temp',
+                        data:[22,28,26,21],
+                        backgroundColor:'#ffb300',
+                        borderRadius:5
+                    }]
+                },
+                options:{
+                    plugins:{legend:{display:false}},
+                    scales:{y:{display:false}}
+                }
+            });
+        };
+    </script>
+</body>
+</html>

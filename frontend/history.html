@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>History</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="script.js"></script>
+</head>
+<body>
+<div class="dashboard-container">
+
+<div class="sidebar">
+<div class="sidebar-header">
+<img src="logo.png" class="sidebar-logo" alt="AGROIQ Logo">
+</div>
+<ul>
+<li class="menu-item" id="home" onclick="goToDashboard()">🏠 Home</li>
+<li class="menu-item" id="dashboard" onclick="goToDashboard()">🔍 Dashboard</li>
+<li class="menu-item active" id="historyLink">📜 History</li>
+<li class="menu-item" id="notifications">🔔 Notifications</li>
+<li class="menu-item" id="logout">🚪 Logout</li>
+</ul>
+</div>
+
+<div class="main">
+
+
+<h1 id="historyTitle">History</h1>
+<div id="historyList" class="history-list">
+<!-- records inserted here -->
+</div>
+</div>
+
+</div>
+
+<script>
+    window.addEventListener('DOMContentLoaded', async () => {
+
+const container = document.getElementById('historyList');
+
+if(!container) return;
+
+// 🔥 Supabase nundi data fetch
+let { data, error } = await supabaseClient
+.from("solutions")
+.select("*")
+.order("id", { ascending: false });
+
+if(error){
+console.log(error);
+return;
+}
+
+// 🔥 cards create
+data.forEach(item => {
+
+const card = document.createElement('div');
+card.className = 'history-card';
+
+card.innerHTML = `
+<div class="history-date">Recent</div>
+<div class="history-text">${item.symptoms}</div>
+<div class="history-disease">${item.disease}</div>
+`;
+
+container.appendChild(card);
+
+});
+
+});
+</script>
+
+</body>
+</html>
