@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<title>AGROIQ Login</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+/* BODY BACKGROUND */
+
+body{
+margin:0;
+font-family:Arial;
+height:100vh;
+width:100%;
+
+background-image:url("https://images.unsplash.com/photo-1501004318641-b39e6451bec6");
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+background-attachment:fixed;
+
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+/* DARK OVERLAY */
+
+body::before{
+content:"";
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.3);
+z-index:-1;
+}
+
+/* LANGUAGE BUTTON */
+
+.lang-btn{
+position:absolute;
+top:20px;
+right:20px;
+padding:6px;
+border-radius:6px;
+border:none;
+}
+
+/* LOGIN BOX */
+
+.login-box{
+background:white;
+padding:40px;
+border-radius:10px;
+width:320px;
+text-align:center;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* LOGO */
+
+.logo{
+width:120px;
+margin-bottom:20px;
+}
+
+/* INPUT FIELDS */
+
+.login-box input{
+width:100%;
+padding:10px;
+margin:10px 0;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+/* LOGIN BUTTON */
+
+.login-box button{
+width:100%;
+padding:10px;
+background:#2e7d32;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+font-size:15px;
+}
+
+.login-box button:hover{
+background:#1b5e20;
+}
+
+/* REGISTER TEXT */
+
+.register-text{
+margin-top:15px;
+}
+
+.register-text a{
+color:#2e7d32;
+text-decoration:none;
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<select id="language" onchange="changeLanguage()" class="lang-btn">
+
+<option value="en">English</option>
+<option value="te">తెలుగు</option>
+<option value="hi">हिंदी</option>
+
+</select>
+
+<div class="login-box">
+
+<img src="logo.png" class="logo">
+
+<p id="loginMessage" style="color:red; font-size:14px; margin-bottom:10px; display:none;"></p>
+
+<input type="text" id="name" placeholder="Your Name">
+
+<input type="password" id="password" placeholder="Password">
+
+<button onclick="loginUser()" id="loginBtn">Login</button>
+
+<a href="forgot-password.html" style="display:block; margin-top:15px; color:#2e7d32; text-decoration:none; font-size:14px;">Forgot Password?</a>
+
+<p class="register-text">
+New Farmer?
+<a href="register.html">Register Here</a>
+</p>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>

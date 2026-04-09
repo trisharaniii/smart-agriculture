@@ -1,0 +1,14 @@
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/rice,plant" -o frontend/crops/rice.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/cotton,plant" -o frontend/crops/cotton.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/maize,plant/all" -o frontend/crops/maize.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/soybean,plant/all" -o frontend/crops/soybean.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/peanut,plant/all" -o frontend/crops/groundnut.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/mustard,field/all" -o frontend/crops/mustard.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/chickpea,plant/all" -o frontend/crops/gram.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/barley,field/all" -o frontend/crops/barley.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/pea,plant/all" -o frontend/crops/peas.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/watermelon,fruit/all" -o frontend/crops/watermelon.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/cucumber,plant/all" -o frontend/crops/cucumber.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/bittergourd,plant/all" -o frontend/crops/bittergourd.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/pumpkin,plant/all" -o frontend/crops/pumpkin.jpg
+curl.exe -s -L -A "Mozilla/5.0" "https://loremflickr.com/400/400/mungbean,plant/all" -o frontend/crops/moongdal.jpg

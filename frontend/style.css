@@ -1,0 +1,482 @@
+/* ================= GLOBAL ================= */
+
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body{
+font-family:'Inter', sans-serif;
+
+background-image:url("https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1600&q=80");
+background-size:cover;
+background-position:center;
+background-attachment:fixed;
+
+min-height:100vh;
+position:relative;
+}
+
+/* background overlay */
+
+body::before{
+content:'';
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+
+background:rgba(0,0,0,0.35);
+z-index:-1;
+}
+
+/* ================= LOGIN PAGE ================= */
+
+body.login-bg{
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+/* language selector */
+
+.lang-btn{
+position:absolute;
+top:20px;
+right:30px;
+
+padding:10px 15px;
+
+border-radius:8px;
+border:2px solid #2e7d32;
+
+background:white;
+color:#2e7d32;
+
+font-weight:600;
+cursor:pointer;
+}
+
+.lang-btn:hover{
+background:#e8f5e9;
+}
+
+/* login box */
+
+.login-box{
+width:340px;
+padding:40px;
+border-radius:20px;
+
+text-align:center;
+
+background:rgba(255, 255, 255, 0.85);
+backdrop-filter:blur(12px);
+border:1px solid rgba(255, 255, 255, 0.4);
+
+box-shadow:0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+animation:fadeIn 0.6s ease;
+}
+
+/* logo */
+
+.logo{
+width:200px;
+margin-bottom:20px;
+}
+
+/* inputs */
+
+.login-box input{
+width:100%;
+
+padding:12px;
+margin:10px 0;
+
+border-radius:8px;
+border:1px solid #ddd;
+
+font-size:14px;
+transition:0.2s;
+}
+
+.login-box input:focus{
+outline:none;
+
+border:1px solid #2e7d32;
+box-shadow:0 0 5px rgba(46,125,50,0.4);
+}
+
+/* login button */
+
+.login-box button{
+width:100%;
+
+padding:12px;
+margin: 10px 0;
+
+background:#2e8b57;
+color:white;
+
+border:none;
+border-radius:8px;
+
+font-size:16px;
+cursor:pointer;
+
+transition:0.3s;
+}
+
+.login-box button:hover{
+background:#256d47;
+transform:translateY(-1px);
+}
+
+/* register */
+
+.register-text{
+margin-top:15px;
+font-size:14px;
+}
+
+.register-text a{
+color:#2e7d32;
+font-weight:bold;
+text-decoration:none;
+}
+
+.register-text a:hover{
+text-decoration:underline;
+}
+
+/* ================= PROBLEM PAGE ================= */
+
+.problem-bg{
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.problem-box{
+width:420px;
+padding:40px;
+
+background:rgba(255, 255, 255, 0.85);
+backdrop-filter:blur(12px);
+border:1px solid rgba(255, 255, 255, 0.4);
+
+border-radius:20px;
+
+text-align:center;
+
+box-shadow:0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.problem-container img{
+width:100%;
+max-width:400px;
+border-radius:10px;
+margin-bottom:15px;
+object-fit:cover;
+}
+
+/* textarea */
+
+.problem-box textarea{
+width:100%;
+height:100px;
+
+padding:12px;
+margin:15px 0;
+
+border-radius:8px;
+border:1px solid #ddd;
+}
+
+/* upload */
+
+.problem-box input[type="file"]{
+margin:15px 0;
+}
+
+/* analyze button */
+
+.problem-box button{
+width:100%;
+
+padding:12px;
+
+background:#2e8b57;
+color:white;
+
+border:none;
+
+border-radius:8px;
+
+font-size:16px;
+cursor:pointer;
+}
+
+.problem-box button:hover{
+background:#256d47;
+}
+
+/* voice button */
+
+.voice-container{
+position:relative;
+}
+
+.voice-container textarea{
+padding-right:50px;
+}
+
+#voiceBtn{
+position:absolute;
+
+right:5px;
+top:5px;
+
+background:#2e8b57;
+color:white;
+
+width:40px;
+height:40px;
+
+border:none;
+border-radius:50%;
+
+cursor:pointer;
+}
+
+/* ================= DASHBOARD ================= */
+
+.dashboard-container{
+display:flex;
+min-height:100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+width:240px;
+
+background:#e8f5e9;
+
+padding:30px 20px;
+
+position:fixed;
+
+height:100vh;
+
+box-shadow:2px 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar-logo{
+width:110px;
+
+margin:auto;
+display:block;
+
+margin-bottom:40px;
+}
+
+/* sidebar menu */
+
+.sidebar ul{
+list-style:none;
+}
+
+.sidebar li{
+margin:18px 0;
+
+padding:12px;
+
+border-radius:8px;
+
+cursor:pointer;
+
+transition:0.2s;
+
+color:#2e7d32;
+font-weight:500;
+}
+
+.sidebar li:hover{
+background:#c8e6c9;
+}
+
+.sidebar li.active{
+background:#a5d6a7;
+font-weight:600;
+}
+
+/* MAIN AREA */
+
+.main{
+margin-left:240px;
+
+padding:40px;
+
+min-height:100vh;
+
+background:rgba(255,255,255,0.85);
+backdrop-filter:blur(6px);
+}
+
+/* CARDS GRID */
+
+.cards-grid{
+display:grid;
+
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+
+gap:25px;
+
+margin-bottom:40px;
+}
+
+/* CARD */
+
+.card{
+background:rgba(255, 255, 255, 0.85);
+backdrop-filter:blur(10px);
+border: 1px solid rgba(255,255,255,0.4);
+
+padding:25px;
+
+border-radius:16px;
+
+box-shadow:0 8px 32px 0 rgba(31, 38, 135, 0.05);
+
+transition:all 0.3s ease;
+}
+
+.card:hover{
+transform:translateY(-5px);
+box-shadow:0 12px 40px 0 rgba(31, 38, 135, 0.15);
+}
+
+/* ANALYSIS */
+
+.analysis-section{
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:25px;
+}
+
+@media(max-width:900px){
+.analysis-section{
+grid-template-columns:1fr;
+}
+}
+
+/* IMAGE + CHART */
+
+.image-card,
+.chart-card{
+background:white;
+
+padding:25px;
+
+border-radius:12px;
+
+box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* SUGGESTIONS */
+
+.suggestions-grid{
+display:grid;
+
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+
+gap:20px;
+}
+
+.suggestion-card{
+background:rgba(255, 255, 255, 0.85);
+backdrop-filter:blur(10px);
+border:1px solid rgba(255,255,255,0.4);
+
+padding:20px;
+
+border-radius:16px;
+
+text-align:center;
+
+transition:all 0.3s ease;
+
+box-shadow:0 8px 32px 0 rgba(31, 38, 135, 0.05);
+}
+
+.suggestion-card:hover{
+transform:translateY(-5px);
+box-shadow:0 12px 40px 0 rgba(31, 38, 135, 0.15);
+}
+
+/* crop cards */
+
+.crop-card{
+background:white;
+
+padding:20px;
+
+border-radius:10px;
+
+text-align:center;
+
+box-shadow:0 2px 8px rgba(0,0,0,0.08);
+
+margin-bottom:20px;
+}
+
+.crop-card img{
+border-radius:8px;
+margin-bottom:10px;
+width:100%;
+}
+
+.crop-card button{
+margin-top:10px;
+
+padding:8px 14px;
+
+background:#2e8b57;
+color:white;
+
+border:none;
+
+border-radius:6px;
+
+cursor:pointer;
+}
+
+.crop-card button:hover{
+background:#256d47;
+}
+
+/* ================= ANIMATIONS ================= */
+
+@keyframes fadeIn{
+
+from{
+opacity:0;
+transform:translateY(10px);
+}
+
+to{
+opacity:1;
+transform:translateY(0);
+}
+
+}

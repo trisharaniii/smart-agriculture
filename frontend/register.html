@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<head>
+
+<title>Farmer Registration</title>
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body class="login-bg">
+
+
+
+<div class="login-box">
+
+<img src="logo.png" class="logo">
+
+<h2>Farmer Registration</h2>
+
+<p id="regMessage" style="color:red; font-size:14px; margin-bottom:10px; display:none;"></p>
+
+<input type="text" id="regName" placeholder="Your Name">
+
+<input type="text" id="regMobile" placeholder="Mobile Number">
+
+<input type="password" id="regPassword" placeholder="Password">
+
+<input type="password" id="confirmPassword" placeholder="Confirm Password">
+
+<button onclick="registerUser()">Register</button>
+
+<p class="register-text">
+<a href="index.html" style="color:#555; text-decoration:none;">Go Back to Login</a>
+</p>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
