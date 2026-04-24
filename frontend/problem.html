@@ -1,99 +1,100 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<title>AGROIQ Crop Problem</title>
 
-<link rel="stylesheet" href="style.css">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>AGROIQ Crop Problem</title>
+
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
 <body class="problem-bg">
 
-<div class="problem-box">
+    <div class="problem-box">
 
-<img src="logo.png" class="logo">
+        <img src="logo.png" class="logo">
 
-<h1 id="problemTitle">Describe Crop Problem</h1>
+        <h1 id="problemTitle">Describe Crop Problem</h1>
 
-<div class="voice-container">
+        <div class="voice-container">
 
-<textarea id="problemText" placeholder="Explain your crop problem here..."></textarea>
+            <textarea id="problemText" placeholder="Explain your crop problem here..."></textarea>
 
-<button id="voiceBtn" title="Speak your problem">
-🎤
-</button>
+            <button id="voiceBtn" title="Speak your problem">
+                🎤
+            </button>
 
-</div>
+        </div>
 
-<input type="file" id="cropImage" accept="image/*">
+        <input type="file" id="cropImage" accept="image/*">
 
-<img id="previewImage" style="width:100%;margin-top:10px;border-radius:10px;display:none;">
+        <img id="previewImage" style="width:100%;margin-top:10px;border-radius:10px;display:none;">
 
-<button class="analyze-btn" onclick="analyzeProblem()">Analyze</button>
+        <button class="analyze-btn" onclick="analyzeProblem()">Analyze</button>
 
-<p class="register-text" style="text-align: center; margin-top: 20px;">
-    <a href="index.html" style="color:#555; text-decoration:none; font-size:14px;">Go Back to Login</a>
-</p>
+        <p class="register-text" style="text-align: center; margin-top: 20px;">
+            <a href="index.html" style="color:#555; text-decoration:none; font-size:14px;">Go Back to Login</a>
+        </p>
 
-</div>
+    </div>
 
-<script src="script.js"></script>
+    <script src="script.js"></script>
 
-<script>
+    <script>
 
-/* IMAGE PREVIEW */
+        /* IMAGE PREVIEW */
 
-document.getElementById("cropImage").addEventListener("change", function(){
+        document.getElementById("cropImage").addEventListener("change", function () {
 
-let file = this.files[0]
+            let file = this.files[0]
 
-if(file){
+            if (file) {
 
-let reader = new FileReader()
+                let reader = new FileReader()
 
-reader.onload = function(e){
+                reader.onload = function (e) {
 
-let img = document.getElementById("previewImage")
+                    let img = document.getElementById("previewImage")
 
-img.src = e.target.result
-img.style.display = "block"
+                    img.src = e.target.result
+                    img.style.display = "block"
 
-}
+                }
 
-reader.readAsDataURL(file)
+                reader.readAsDataURL(file)
 
-}
+            }
 
-})
+        })
 
-/* VOICE INPUT */
+        /* VOICE INPUT */
 
-let voiceBtn = document.getElementById("voiceBtn")
+        let voiceBtn = document.getElementById("voiceBtn")
 
-if('webkitSpeechRecognition' in window){
+        if ('webkitSpeechRecognition' in window) {
 
-let recognition = new webkitSpeechRecognition()
+            let recognition = new webkitSpeechRecognition()
 
-recognition.continuous = false
-recognition.lang = "en-US"
+            recognition.continuous = false
+            recognition.lang = "en-US"
 
-voiceBtn.onclick = function(){
-recognition.start()
-}
+            voiceBtn.onclick = function () {
+                recognition.start()
+            }
+            _
+            recognition.onresult = function (event) {
 
-recognition.onresult = function(event){
+                let speech = event.results[0][0].transcript
 
-let speech = event.results[0][0].transcript
+                document.getElementById("problemText").value = speech
 
-document.getElementById("problemText").value = speech
+            }
 
-}
+        }
 
-}
-
-</script>
+    </script>
 
 </body>
 
