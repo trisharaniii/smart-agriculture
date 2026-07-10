@@ -1204,9 +1204,22 @@ function speakTextSafely(text, langCode) {
     if (langCode === 'te' || langCode === 'hi') {
         console.log(`Using Google Translate TTS for ${langCode}`);
         let safeText = text.substring(0, 195);
-        let url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=${encodeURIComponent(safeText)}&tl=${langCode}`;
-        window.globalAudio = new Audio(url);
-        window.globalAudio.play().catch(e => console.error("Cloud Audio blocked:", e));
+        let url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${langCode}&q=${encodeURIComponent(safeText)}`;
+        
+        let audio = new Audio();
+        audio.referrerPolicy = "no-referrer";
+        audio.src = url;
+        window.globalAudio = audio;
+        
+        window.globalAudio.play().catch(e => {
+            console.warn("googleapis TTS failed, trying translate.google.com fallback:", e);
+            let fbUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=${encodeURIComponent(safeText)}&tl=${langCode}`;
+            let fbAudio = new Audio();
+            fbAudio.referrerPolicy = "no-referrer";
+            fbAudio.src = fbUrl;
+            window.globalAudio = fbAudio;
+            window.globalAudio.play().catch(err => console.error("Cloud Audio completely blocked:", err));
+        });
         return;
     }
 
