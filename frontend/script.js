@@ -36,25 +36,42 @@ async function loginUser() {
     let btn = document.getElementById("loginBtn");
     if (btn) { btn.innerText = "Logging in..."; btn.disabled = true; }
 
+    if (!supabaseClient) {
+        showAuthMessage(msgId, "Supabase client not initialized.", true);
+        if(btn) { btn.innerText = "Login"; btn.disabled = false; }
+        return;
+    }
+
     try {
-        let res = await fetch("http://localhost:5000/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, password: pass })
-        });
-        
-        let data = await res.json();
-        
-        if (res.ok) {
-            localStorage.setItem("farmerName", data.user.name);
+        let { data, error } = await supabaseClient
+            .from("users")
+            .select("*")
+            .eq("name", name)
+            .limit(1);
+
+        if (error) {
+            showAuthMessage(msgId, "Login failed: " + error.message, true);
+            if (btn) { btn.innerText = "Login"; btn.disabled = false; }
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            showAuthMessage(msgId, "User not found.", true);
+            if (btn) { btn.innerText = "Login"; btn.disabled = false; }
+            return;
+        }
+
+        let user = data[0];
+        if (user.password === pass) {
+            localStorage.setItem("farmerName", user.name);
             window.location.href = "problem.html";
         } else {
-            showAuthMessage(msgId, data.error || "Login failed.", true);
-            if(btn) { btn.innerText = "Login"; btn.disabled = false; }
+            showAuthMessage(msgId, "Invalid password.", true);
+            if (btn) { btn.innerText = "Login"; btn.disabled = false; }
         }
     } catch(e) {
-        showAuthMessage(msgId, "Server connection failed.", true);
-        if(btn) { btn.innerText = "Login"; btn.disabled = false; }
+        showAuthMessage(msgId, "Connection error: " + e.message, true);
+        if (btn) { btn.innerText = "Login"; btn.disabled = false; }
     }
 }
 
@@ -85,27 +102,47 @@ async function registerUser() {
     let btn = document.querySelector("button[onclick='registerUser()']");
     if (btn) { btn.innerText = "Registering..."; btn.disabled = true; }
 
+    if (!supabaseClient) {
+        showAuthMessage(msgId, "Supabase client not initialized.", true);
+        if (btn) { btn.innerText = "Register"; btn.disabled = false; }
+        return;
+    }
+
     try {
-        let res = await fetch("http://localhost:5000/api/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, mobile, password })
-        });
-        
-        let data = await res.json();
-        
-        if (res.ok) {
-            showAuthMessage(msgId, "Registration successful! Redirecting...", false);
-            setTimeout(() => {
-                window.location.href = "index.html";
-            }, 1500);
-        } else {
-            showAuthMessage(msgId, "Registration failed: " + (data.error || "Unknown"), true);
-            if(btn) { btn.innerText = "Register"; btn.disabled = false; }
+        let { data, error } = await supabaseClient
+            .from("users")
+            .select("mobile")
+            .eq("mobile", mobile);
+
+        if (error) {
+            showAuthMessage(msgId, "Registration check failed: " + error.message, true);
+            if (btn) { btn.innerText = "Register"; btn.disabled = false; }
+            return;
         }
+
+        if (data && data.length > 0) {
+            showAuthMessage(msgId, "User with this mobile number already exists.", true);
+            if (btn) { btn.innerText = "Register"; btn.disabled = false; }
+            return;
+        }
+
+        let { error: insertError } = await supabaseClient
+            .from("users")
+            .insert([{ name, mobile, password }]);
+
+        if (insertError) {
+            showAuthMessage(msgId, "Registration failed: " + insertError.message, true);
+            if (btn) { btn.innerText = "Register"; btn.disabled = false; }
+            return;
+        }
+
+        showAuthMessage(msgId, "Registration successful! Redirecting...", false);
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 1500);
     } catch(e) {
-        showAuthMessage(msgId, "Server connection failed.", true);
-        if(btn) { btn.innerText = "Register"; btn.disabled = false; }
+        showAuthMessage(msgId, "Connection error: " + e.message, true);
+        if (btn) { btn.innerText = "Register"; btn.disabled = false; }
     }
 }
 
@@ -125,23 +162,23 @@ async function sendResetOTP() {
     let btn = document.getElementById("btnSendOTP");
     if (btn) { btn.innerText = "Checking..."; btn.disabled = true; }
 
+    if (!supabaseClient) {
+        showAuthMessage(msgId, "Supabase client not initialized.", true);
+        if (btn) { btn.innerText = "Send OTP"; btn.disabled = false; }
+        return;
+    }
+
     try {
-        let res = await fetch("http://localhost:5000/api/check-mobile", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mobile })
-        });
-        
-        let data = await res.json();
-        
-        if (!res.ok) {
-            showAuthMessage(msgId, data.error || "Mobile number not found in our records.", true);
-            if(btn) { btn.innerText = "Send OTP"; btn.disabled = false; }
+        let { data, error } = await supabaseClient.from("users").select("mobile").eq("mobile", mobile);
+
+        if (error || !data || data.length === 0) {
+            showAuthMessage(msgId, "Mobile number not found in our records.", true);
+            if (btn) { btn.innerText = "Send OTP"; btn.disabled = false; }
             return;
         }
     } catch(e) {
         showAuthMessage(msgId, "Server connection failed.", true);
-        if(btn) { btn.innerText = "Send OTP"; btn.disabled = false; }
+        if (btn) { btn.innerText = "Send OTP"; btn.disabled = false; }
         return;
     }
 
@@ -186,23 +223,23 @@ async function resetPassword() {
     let btn = document.getElementById("btnResetPass");
     if (btn) { btn.innerText = "Updating..."; btn.disabled = true; }
 
+    if (!supabaseClient) {
+        showAuthMessage(msgId, "Supabase client not initialized.", true);
+        if (btn) { btn.innerText = "Update Password"; btn.disabled = false; }
+        return;
+    }
+
     try {
-        let res = await fetch("http://localhost:5000/api/reset-password", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mobile: resettingMobile, password: newPass })
-        });
-        
-        let data = await res.json();
-        
-        if (!res.ok) {
-            showAuthMessage(msgId, data.error || "Update failed.", true);
-            if(btn) { btn.innerText = "Update Password"; btn.disabled = false; }
+        let { error } = await supabaseClient.from("users").update({ password: newPass }).eq("mobile", resettingMobile);
+
+        if (error) {
+            showAuthMessage(msgId, "Update failed: " + error.message, true);
+            if (btn) { btn.innerText = "Update Password"; btn.disabled = false; }
             return;
         }
     } catch(e) {
         showAuthMessage(msgId, "Server connection failed.", true);
-        if(btn) { btn.innerText = "Update Password"; btn.disabled = false; }
+        if (btn) { btn.innerText = "Update Password"; btn.disabled = false; }
         return;
     }
 
