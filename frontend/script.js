@@ -1201,22 +1201,8 @@ function speakTextSafely(text, langCode) {
     if (window.globalAudio) window.globalAudio.pause();
     window.speechSynthesis.cancel();
 
-    let voices = window.speechSynthesis.getVoices();
-    let hasVoice = false;
-    let targetLangCode = 'en-US';
-
-    if (langCode === 'te') {
-        hasVoice = voices.some(v => v.lang.includes('te'));
-        targetLangCode = 'te-IN';
-    } else if (langCode === 'hi') {
-        hasVoice = voices.some(v => v.lang.includes('hi'));
-        targetLangCode = 'hi-IN';
-    } else {
-        hasVoice = true;
-    }
-
-    if (langCode !== 'en' && !hasVoice) {
-        console.warn("Local OS is missing the language pack. Streaming Google Cloud MP3.");
+    if (langCode === 'te' || langCode === 'hi') {
+        console.log(`Using Google Translate TTS for ${langCode}`);
         let safeText = text.substring(0, 195);
         let url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=${encodeURIComponent(safeText)}&tl=${langCode}`;
         window.globalAudio = new Audio(url);
@@ -1224,8 +1210,9 @@ function speakTextSafely(text, langCode) {
         return;
     }
 
+    // Default to browser speech synthesis for English
     let utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = targetLangCode;
+    utterance.lang = 'en-US';
     window.speechSynthesis.speak(utterance);
 }
 
