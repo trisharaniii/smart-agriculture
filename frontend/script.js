@@ -531,7 +531,6 @@ async function loadDashboard() {
         if (solEl) solEl.innerText = (item.suggestion ?? 'No solution available') + '\n\nSummary: ' + (item.summary ?? '');
         if (confEl) confEl.innerText = (item.confidence ?? '--') + '%';
         let lang = localStorage.getItem('lang') || 'en';
-        bindSpeechToSolution(solEl, solEl.innerText, lang);
 
         // Show uploaded image or Wikipedia search
         let uploadedImgBase64 = localStorage.getItem('uploadedImageBase64');
