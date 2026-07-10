@@ -164,7 +164,17 @@
         </section>
 
         <section id="dashboard" class="content-section active">
-            <h1 id="dashboardTitle">Crop Analysis Dashboard</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h1 id="dashboardTitle" style="margin: 0;">Crop Analysis Dashboard</h1>
+                <div style="display: flex; gap: 10px;">
+                    <select id="language" onchange="changeLanguage()" style="padding: 8px 15px; border-radius: 8px; border: 1px solid #ddd; font-weight: bold; font-family: 'Inter', sans-serif; background: var(--card-bg); color: var(--text-main); font-size: 14px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <option value="en">🌐 English</option>
+                        <option value="te">🌐 తెలుగు</option>
+                        <option value="hi">🌐 हिंदी</option>
+                    </select>
+                    <button onclick="window.print()" style="padding: 8px 15px; border-radius: 8px; border: none; font-weight: bold; font-family: 'Inter', sans-serif; background: #2ecc71; color: white; font-size: 14px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">⬇️ Report</button>
+                </div>
+            </div>
             <div class="dashboard-grid">
                 
                 <div class="glass-card">
@@ -198,7 +208,7 @@
                 </div>
 
                 <div class="glass-card">
-                    <div class="card-header"><h3>💡 Recommended Solution</h3></div>
+                    <div class="card-header"><h3 id="recSolTitle">💡 Recommended Solution</h3></div>
                     <div id="solutionContainer" style="margin-bottom: 15px;">
                         <p id="solutionText" style="line-height: 1.5; color: #555;">Processing the best treatment for your crop...</p>
                     </div>
