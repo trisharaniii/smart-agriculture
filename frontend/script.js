@@ -435,21 +435,6 @@ async function analyzeProblem() {
     }
 
     if (bestMatch && bestScore >= 1) {
-
-    // Save search history and confidence
-    let conf = Math.min(99, Math.round(60 + bestScore * 3));
-    localStorage.setItem("lastConfidence", conf + "%");
-    let searchRecord = {
-        problem: text,
-        disease: bestMatch.disease,
-        confidence: conf + "%",
-        timestamp: new Date().toLocaleString()
-    };
-    let history = JSON.parse(localStorage.getItem("searchHistory") || "[]");
-    history.unshift(searchRecord);
-    if(history.length > 15) history.pop();
-    localStorage.setItem("searchHistory", JSON.stringify(history));
-
         if (!bestMatch.id) {
             alert("ID missing in database ❌");
             return;
@@ -458,7 +443,7 @@ async function analyzeProblem() {
         localStorage.setItem("selectedDiseaseId", Number(bestMatch.id));
 
         // Save search history and confidence
-        let conf = bestScore >= 10 ? 98 : (bestScore >= 5 ? 85 : 72);
+        let conf = Math.min(99, Math.round(60 + bestScore * 3));
         localStorage.setItem("lastConfidence", conf + "%");
         let searchRecord = {
             problem: text,
@@ -468,7 +453,7 @@ async function analyzeProblem() {
         };
         let history = JSON.parse(localStorage.getItem("searchHistory") || "[]");
         history.unshift(searchRecord);
-        if (history.length > 15) history.pop();
+        if(history.length > 15) history.pop();
         localStorage.setItem("searchHistory", JSON.stringify(history));
 
         console.log("Saved ID:", bestMatch.id);
@@ -499,7 +484,6 @@ async function analyzeProblem() {
             btn.disabled = false;
         }
     }
-}
 }
 
 /* ================= WIKIPEDIA IMAGE AUTO-FETCHER ================= */
@@ -533,15 +517,15 @@ function autoFetchWikipediaForDisease(imageElement, diseaseName) {
 
 /* ================= DASHBOARD LOAD ================= */
 async function loadDashboard() {
+    let resEl = document.getElementById('diseaseResult');
+    let solEl = document.getElementById('solutionText');
+    let alertBadge = document.getElementById('alertBadge');
+    let confEl = document.getElementById('diseaseConfidence');
 
     // 🖼️ IMAGE/TEXT AI MODE: came from image upload or text AI — use backend result directly
     let imgResult = localStorage.getItem('imageAnalysisResult');
     if (imgResult) {
         let item = JSON.parse(imgResult);
-        let resEl = document.getElementById('diseaseResult');
-        let solEl = document.getElementById('solutionText');
-        let alertBadge = document.getElementById('alertBadge');
-        let confEl = document.getElementById('diseaseConfidence');
         if (resEl) resEl.innerText = item.disease ?? 'No Data';
         if (alertBadge) alertBadge.innerText = 'Alert: ' + (item.disease ?? 'No Data');
         if (solEl) solEl.innerText = (item.suggestion ?? 'No solution available') + '\n\nSummary: ' + (item.summary ?? '');
@@ -642,7 +626,6 @@ async function loadDashboard() {
         if (solEl) solEl.innerText = "Failed to query the database table: " + e.message;
     }
 
-    let confEl = document.getElementById("diseaseConfidence");
     if (confEl) confEl.innerText = localStorage.getItem("lastConfidence") || "94%";
 }
 // Apply language after data loads
