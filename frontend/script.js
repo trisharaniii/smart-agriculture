@@ -530,6 +530,8 @@ async function loadDashboard() {
         if (alertBadge) alertBadge.innerText = 'Alert: ' + (item.disease ?? 'No Data');
         if (solEl) solEl.innerText = (item.suggestion ?? 'No solution available') + '\n\nSummary: ' + (item.summary ?? '');
         if (confEl) confEl.innerText = (item.confidence ?? '--') + '%';
+        let lang = localStorage.getItem('lang') || 'en';
+        bindSpeechToSolution(solEl, solEl.innerText, lang);
 
         // Show uploaded image or Wikipedia search
         let uploadedImgBase64 = localStorage.getItem('uploadedImageBase64');
@@ -593,6 +595,8 @@ async function loadDashboard() {
                 (item.solution ?? "No solution") +
                 "\n\n💊 Medicine: " + (item.medicine ?? "N/A");
         }
+        let lang = localStorage.getItem('lang') || 'en';
+        bindSpeechToSolution(solEl, solEl.innerText, lang);
 
         let img = document.getElementById("diseaseImage");
         if (img) {
@@ -1145,6 +1149,87 @@ function loadHistory() {
         `;
         container.appendChild(card);
     });
+}
+
+/* ================= SPEECH SYNTHESIS & VOICE ASSISTANT ================= */
+function bindSpeechToSolution(solEl, textToSpeak, langCode) {
+    if (!solEl) return;
+    solEl.style.cursor = "pointer";
+    solEl.title = "Click to listen to the solution";
+    solEl.onclick = function() {
+        window.speechSynthesis.cancel();
+        let problemTitle = document.getElementById("diseaseResult") ? 
+            document.getElementById("diseaseResult").innerText : "";
+        let fullText = problemTitle + ". " + textToSpeak;
+        speakTextSafely(fullText, langCode);
+    };
+
+    if (!document.getElementById("speakHint")) {
+        let hint = document.createElement("div");
+        hint.id = "speakHint";
+        hint.innerHTML = "🔊 <i>Click text to listen</i>";
+        hint.style.fontSize = "12px";
+        hint.style.color = "#2ecc71";
+        hint.style.marginTop = "8px";
+        hint.style.cursor = "pointer";
+        hint.onclick = () => solEl.click();
+        solEl.parentNode.appendChild(hint);
+    }
+}
+
+function readFullDashboard() {
+    window.speechSynthesis.cancel();
+    let lang = localStorage.getItem("lang") || "en";
+    let disObj = document.getElementById("diseaseResult");
+    let solObj = document.getElementById("solutionText");
+    
+    let dis = disObj ? disObj.innerText : "";
+    let sol = solObj ? solObj.innerText : "";
+    
+    let dbTitles = {
+        en: ["Disease Detected", "Solution", "Soil Health", "Nitrogen", "Phosphorus", "Potassium"],
+        hi: ["बीमारी का पता चला", "समाधान", "मृदा स्वास्थ्य स्कोर", "नाइट्रोजन", "फास्फोरस", "पोटेशियम"],
+        te: ["వ్యాధి గుర్తింపు", "పరిష్కారం", "నేల ఆరోగ్య స్కోర్", "నత్రజని", "భాస్వరం", "పొటాషియం"]
+    };
+    
+    let t = dbTitles[lang] || dbTitles.en;
+    
+    let shortSol = sol.replace(/💊/g, "").substring(0, 100).trim();
+    let fullText = `${t[0]}: ${dis}. ${t[1]}: ${shortSol}. ${t[2]} 70. ${t[3]} 71. ${t[4]} 55. ${t[5]} 42`;
+    
+    speakTextSafely(fullText, lang);
+}
+
+function speakTextSafely(text, langCode) {
+    if (window.globalAudio) window.globalAudio.pause();
+    window.speechSynthesis.cancel();
+
+    let voices = window.speechSynthesis.getVoices();
+    let hasVoice = false;
+    let targetLangCode = 'en-US';
+
+    if (langCode === 'te') {
+        hasVoice = voices.some(v => v.lang.includes('te'));
+        targetLangCode = 'te-IN';
+    } else if (langCode === 'hi') {
+        hasVoice = voices.some(v => v.lang.includes('hi'));
+        targetLangCode = 'hi-IN';
+    } else {
+        hasVoice = true;
+    }
+
+    if (langCode !== 'en' && !hasVoice) {
+        console.warn("Local OS is missing the language pack. Streaming Google Cloud MP3.");
+        let safeText = text.substring(0, 195);
+        let url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=${encodeURIComponent(safeText)}&tl=${langCode}`;
+        window.globalAudio = new Audio(url);
+        window.globalAudio.play().catch(e => console.error("Cloud Audio blocked:", e));
+        return;
+    }
+
+    let utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = targetLangCode;
+    window.speechSynthesis.speak(utterance);
 }
 
 /* ================= PAGE LOAD ================= */
