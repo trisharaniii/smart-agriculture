@@ -583,20 +583,9 @@ async function loadDashboard() {
         }
 
         let item = data[0];
-
-        // SAFE SET
-        if (resEl) resEl.innerText = item.disease ?? "No Data";
-
-        let alertBadge = document.getElementById("alertBadge");
-        if (alertBadge) alertBadge.innerText = "Alert: " + (item.disease ?? "No Data");
-
-        if (solEl) {
-            solEl.innerText =
-                (item.solution ?? "No solution") +
-                "\n\n💊 Medicine: " + (item.medicine ?? "N/A");
-        }
+        localStorage.setItem("supabaseCachedItem", JSON.stringify(item));
         let lang = localStorage.getItem('lang') || 'en';
-        bindSpeechToSolution(solEl, solEl.innerText, lang);
+        translateDynamicDiseaseResults(lang);
 
         let img = document.getElementById("diseaseImage");
         if (img) {
@@ -804,14 +793,22 @@ function translateDynamicDiseaseResults(lang) {
         dSol = item.solution || "No solution";
         dMed = item.medicine || "N/A";
     } else {
-        let cachedItemStr = localStorage.getItem("supabaseCachedItem");
-        if (cachedItemStr) {
-            let item = JSON.parse(cachedItemStr);
+        let imgResultStr = localStorage.getItem("imageAnalysisResult");
+        if (imgResultStr) {
+            let item = JSON.parse(imgResultStr);
             dName = item.disease;
-            dSol = item.solution || "No solution";
-            dMed = item.medicine || "N/A";
+            dSol = item.suggestion || "No solution";
+            dMed = "";
         } else {
-            return;
+            let cachedItemStr = localStorage.getItem("supabaseCachedItem");
+            if (cachedItemStr) {
+                let item = JSON.parse(cachedItemStr);
+                dName = item.disease;
+                dSol = item.solution || "No solution";
+                dMed = item.medicine || "N/A";
+            } else {
+                return;
+            }
         }
     }
 
