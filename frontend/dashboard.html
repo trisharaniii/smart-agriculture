@@ -205,9 +205,45 @@
                     <button class="action-btn" onclick="applyTreatment()">Apply This Treatment</button>
                 </div>
 
-                <div class="glass-card">
-                    <div class="card-header"><h3>📍 Sensor Map</h3></div>
-                    <div style="width:100%; height: 180px; background: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800') center/cover; border-radius: 15px;"></div>
+                <div class="glass-card" id="soilHealthCard">
+                    <div class="card-header">
+                        <h3>🧪 Soil Health</h3>
+                        <span id="soilScoreBadge" style="background:#e8f5e9;color:#2e7d32;font-weight:bold;padding:4px 12px;border-radius:20px;font-size:13px;">Score: --</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:14px;">
+                        <!-- Nitrogen -->
+                        <div>
+                            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;">
+                                <span>🟢 Nitrogen (N)</span><span id="nVal" style="font-weight:600;">--</span>
+                            </div>
+                            <div style="background:#eee;border-radius:10px;height:10px;overflow:hidden;">
+                                <div id="nBar" style="height:100%;width:0%;background:linear-gradient(90deg,#56ab2f,#a8e063);border-radius:10px;transition:width 1s ease;"></div>
+                            </div>
+                        </div>
+                        <!-- Phosphorus -->
+                        <div>
+                            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;">
+                                <span>🟡 Phosphorus (P)</span><span id="pVal" style="font-weight:600;">--</span>
+                            </div>
+                            <div style="background:#eee;border-radius:10px;height:10px;overflow:hidden;">
+                                <div id="pBar" style="height:100%;width:0%;background:linear-gradient(90deg,#f7971e,#ffd200);border-radius:10px;transition:width 1s ease;"></div>
+                            </div>
+                        </div>
+                        <!-- Potassium -->
+                        <div>
+                            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;">
+                                <span>🔵 Potassium (K)</span><span id="kVal" style="font-weight:600;">--</span>
+                            </div>
+                            <div style="background:#eee;border-radius:10px;height:10px;overflow:hidden;">
+                                <div id="kBar" style="height:100%;width:0%;background:linear-gradient(90deg,#4facfe,#00f2fe);border-radius:10px;transition:width 1s ease;"></div>
+                            </div>
+                        </div>
+                        <!-- pH -->
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid #eee;font-size:13px;">
+                            <span>⚗️ Soil pH</span>
+                            <span id="phVal" style="font-weight:700;font-size:18px;color:var(--accent-green);">--</span>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -254,6 +290,30 @@
     </main>
  
     <script>
+        // SOIL HEALTH CARD
+        function loadSoilHealth() {
+            // Realistic ranges: N 20-90 kg/ha, P 10-60 kg/ha, K 30-120 kg/ha, pH 5.5-8.0
+            let n = Math.floor(Math.random() * 70) + 20;
+            let p = Math.floor(Math.random() * 50) + 10;
+            let k = Math.floor(Math.random() * 90) + 30;
+            let ph = (Math.random() * 2.5 + 5.5).toFixed(1);
+
+            setTimeout(() => {
+                document.getElementById('nVal').innerText = n + ' kg/ha';
+                document.getElementById('pVal').innerText = p + ' kg/ha';
+                document.getElementById('kVal').innerText = k + ' kg/ha';
+                document.getElementById('phVal').innerText = ph;
+                document.getElementById('nBar').style.width = Math.min(100, n) + '%';
+                document.getElementById('pBar').style.width = Math.min(100, p * 1.5) + '%';
+                document.getElementById('kBar').style.width = Math.min(100, k * 0.8) + '%';
+                let score = Math.round((n/90*40) + (p/60*30) + (k/120*30));
+                let badge = document.getElementById('soilScoreBadge');
+                badge.innerText = 'Score: ' + score + '/100';
+                badge.style.background = score >= 70 ? '#e8f5e9' : score >= 45 ? '#fff8e1' : '#ffebee';
+                badge.style.color = score >= 70 ? '#2e7d32' : score >= 45 ? '#f57f17' : '#c62828';
+            }, 300);
+        }
+
         // NAVIGATION LOGIC
         function showSection(sectionId, element) {
             document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
@@ -291,8 +351,7 @@
 
         // CHARTS & INITIALIZATION
         window.onload = function() {
-            // ✅ loadDashboard is defined in script.js, call it directly
-            if (typeof loadDashboard === 'function') loadDashboard();
+            loadSoilHealth();
 
             const ctx1 = document.getElementById('miniChart').getContext('2d');
             new Chart(ctx1,{

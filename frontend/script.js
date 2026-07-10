@@ -36,29 +36,24 @@ async function loginUser() {
     let btn = document.getElementById("loginBtn");
     if(btn) { btn.innerText = "Logging in..."; btn.disabled = true; }
 
-    let { data, error } = await supabaseClient.from("users").select("*");
-
-    if (error) {
-        showAuthMessage(msgId, "Database error: " + error.message, true);
-        if(btn) { btn.innerText = "Login"; btn.disabled = false; }
-        return;
-    }
-
-    let userByName = data.find(u => u.name === name);
-
-    if (!userByName) {
-        showAuthMessage(msgId, "User not found. Please register first.", true);
-        if(btn) { btn.innerText = "Login"; btn.disabled = false; }
-        return;
-    }
-
-    let user = data.find(u => u.name === name && u.password === pass);
-
-    if (user) {
-        localStorage.setItem("farmerName", user.name);
-        window.location.href = "problem.html";
-    } else {
-        showAuthMessage(msgId, "Incorrect password. Please try again.", true);
+    try {
+        let res = await fetch("http://localhost:5000/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, password: pass })
+        });
+        
+        let data = await res.json();
+        
+        if (res.ok) {
+            localStorage.setItem("farmerName", data.user.name);
+            window.location.href = "problem.html";
+        } else {
+            showAuthMessage(msgId, data.error || "Login failed.", true);
+            if(btn) { btn.innerText = "Login"; btn.disabled = false; }
+        }
+    } catch(e) {
+        showAuthMessage(msgId, "Server connection failed.", true);
         if(btn) { btn.innerText = "Login"; btn.disabled = false; }
     }
 }
@@ -90,18 +85,28 @@ async function registerUser() {
     let btn = document.querySelector("button[onclick='registerUser()']");
     if(btn) { btn.innerText = "Registering..."; btn.disabled = true; }
 
-    let { error } = await supabaseClient.from("users").insert([{ name, mobile, password }]);
-
-    if (error) {
-        showAuthMessage(msgId, "Registration failed: " + error.message, true);
+    try {
+        let res = await fetch("http://localhost:5000/api/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, mobile, password })
+        });
+        
+        let data = await res.json();
+        
+        if (res.ok) {
+            showAuthMessage(msgId, "Registration successful! Redirecting...", false);
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1500);
+        } else {
+            showAuthMessage(msgId, "Registration failed: " + (data.error || "Unknown"), true);
+            if(btn) { btn.innerText = "Register"; btn.disabled = false; }
+        }
+    } catch(e) {
+        showAuthMessage(msgId, "Server connection failed.", true);
         if(btn) { btn.innerText = "Register"; btn.disabled = false; }
-        return;
     }
-
-    showAuthMessage(msgId, "Registration successful! Redirecting...", false);
-    setTimeout(() => {
-        window.location.href = "index.html";
-    }, 1500);
 }
 
 /* ================= FORGOT PASSWORD ================= */
@@ -120,10 +125,22 @@ async function sendResetOTP() {
     let btn = document.getElementById("btnSendOTP");
     if(btn) { btn.innerText = "Checking..."; btn.disabled = true; }
 
-    let { data, error } = await supabaseClient.from("users").select("mobile").eq("mobile", mobile);
-
-    if (error || !data || data.length === 0) {
-        showAuthMessage(msgId, "Mobile number not found in our records.", true);
+    try {
+        let res = await fetch("http://localhost:5000/api/check-mobile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mobile })
+        });
+        
+        let data = await res.json();
+        
+        if (!res.ok) {
+            showAuthMessage(msgId, data.error || "Mobile number not found in our records.", true);
+            if(btn) { btn.innerText = "Send OTP"; btn.disabled = false; }
+            return;
+        }
+    } catch(e) {
+        showAuthMessage(msgId, "Server connection failed.", true);
         if(btn) { btn.innerText = "Send OTP"; btn.disabled = false; }
         return;
     }
@@ -169,11 +186,22 @@ async function resetPassword() {
     let btn = document.getElementById("btnResetPass");
     if(btn) { btn.innerText = "Updating..."; btn.disabled = true; }
 
-    // Supabase standard update
-    let { error } = await supabaseClient.from("users").update({ password: newPass }).eq("mobile", resettingMobile);
-
-    if (error) {
-        showAuthMessage(msgId, "Update failed: " + error.message, true);
+    try {
+        let res = await fetch("http://localhost:5000/api/reset-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mobile: resettingMobile, password: newPass })
+        });
+        
+        let data = await res.json();
+        
+        if (!res.ok) {
+            showAuthMessage(msgId, data.error || "Update failed.", true);
+            if(btn) { btn.innerText = "Update Password"; btn.disabled = false; }
+            return;
+        }
+    } catch(e) {
+        showAuthMessage(msgId, "Server connection failed.", true);
         if(btn) { btn.innerText = "Update Password"; btn.disabled = false; }
         return;
     }
@@ -202,6 +230,15 @@ async function analyzeProblem() {
     if (btn) {
         btn.innerText = "Analyzing...";
         btn.disabled = true;
+    }
+
+    if (!supabaseClient) {
+        alert("Database connection is not available.");
+        if (btn) {
+            btn.innerText = "Analyze";
+            btn.disabled = false;
+        }
+        return;
     }
 
     // 📥 Fetch all diseases
@@ -292,7 +329,7 @@ async function analyzeProblem() {
     localStorage.setItem("selectedDiseaseId", Number(bestMatch.id));
 
     // Save search history and confidence
-    let conf = bestScore >= 10 ? 98 : (bestScore >= 5 ? 85 : 72);
+    let conf = Math.min(99, Math.round(60 + bestScore * 3));
     localStorage.setItem("lastConfidence", conf + "%");
     let searchRecord = {
         problem: text,
@@ -319,8 +356,65 @@ async function analyzeProblem() {
     }
 }
 }
+
+/* ================= WIKIPEDIA IMAGE AUTO-FETCHER ================= */
+function autoFetchWikipediaForDisease(imageElement, diseaseName) {
+    if (!imageElement || !diseaseName) return;
+    imageElement.onerror = null;
+    
+    // Photorealistic fallback
+    let safeFallback = "./crops/generic_disease.png";
+    imageElement.src = safeFallback;
+    
+    let query = encodeURIComponent(diseaseName);
+    fetch(`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${query}&gsrlimit=1&prop=pageimages&format=json&pithumbsize=500&origin=*`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.query && data.query.pages) {
+            let pages = data.query.pages;
+            let pageId = Object.keys(pages)[0];
+            if (pages[pageId] && pages[pageId].thumbnail) {
+                let thumbUrl = pages[pageId].thumbnail.source;
+                if (thumbUrl.startsWith("//")) {
+                    thumbUrl = "https:" + thumbUrl; 
+                }
+                let tempImg = new Image();
+                tempImg.onload = () => imageElement.src = thumbUrl;
+                tempImg.src = thumbUrl;
+            }
+        }
+    }).catch(e => console.log("Wiki fetch API error", e));
+}
+
 /* ================= DASHBOARD LOAD ================= */
 async function loadDashboard() {
+
+    // 🖼️ IMAGE/TEXT AI MODE: came from image upload or text AI — use backend result directly
+    let imgResult = localStorage.getItem('imageAnalysisResult');
+    if (imgResult) {
+        let item = JSON.parse(imgResult);
+        let resEl = document.getElementById('diseaseResult');
+        let solEl = document.getElementById('solutionText');
+        let alertBadge = document.getElementById('alertBadge');
+        let confEl = document.getElementById('diseaseConfidence');
+        if (resEl) resEl.innerText = item.disease ?? 'No Data';
+        if (alertBadge) alertBadge.innerText = 'Alert: ' + (item.disease ?? 'No Data');
+        if (solEl) solEl.innerText = (item.suggestion ?? 'No solution available') + '\n\nSummary: ' + (item.summary ?? '');
+        if (confEl) confEl.innerText = (item.confidence ?? '--') + '%';
+
+        // Show uploaded image or Wikipedia search
+        let uploadedImgBase64 = localStorage.getItem('uploadedImageBase64');
+        let img = document.getElementById('diseaseImage');
+        if (img) {
+            if (uploadedImgBase64) {
+                img.src = uploadedImgBase64;
+            } else {
+                autoFetchWikipediaForDisease(img, item.disease);
+            }
+        }
+        applyLanguage();
+        return;
+    }
 
     let id = parseInt(localStorage.getItem("selectedDiseaseId"));
 
@@ -335,94 +429,79 @@ async function loadDashboard() {
         return;
     }
 
-    let { data, error } = await supabaseClient
-    .from("plant_diseases")
-    .select("*")
-    .eq("id", id)
-    .limit(1);
-
-    console.log("Fetched:", data);
-
-   let item = data[0];
-
-if (!item) {
-    console.log("No item found");
-    return;
-}
-
-console.log("ITEM:", item);
-
-// SAFE SET
-if (resEl) resEl.innerText = item.disease ?? "No Data";
-
-let alertBadge = document.getElementById("alertBadge");
-if (alertBadge) alertBadge.innerText = "Alert: " + (item.disease ?? "No Data");
-
-if (solEl) {
-    solEl.innerText =
-        (item.solution ?? "No solution") +
-        "\n\n💊 Medicine: " + (item.medicine ?? "N/A");
-}
-
-let img = document.getElementById("diseaseImage");
-if (img) {
-    let url = item.image || item.image_url || item.url || "";
-    if (typeof url === 'string') {
-        url = url.trim().replace(/^['"](.*)['"]$/, '$1'); // Clean accidental quotes
+    if (!supabaseClient) {
+        console.error("Supabase client not initialized.");
+        if (resEl) resEl.innerText = "Database Error";
+        if (solEl) solEl.innerText = "Supabase database client is offline. Please check configuration.";
+        return;
     }
-    
-    // Master function for flawless generic auto-fetching
-    function autoFetchWikipedia(imageElement) {
-        imageElement.onerror = null;
-        
-        // Photorealistic ultra-fallback for obscure diseases
-        let safeFallback = "./crops/generic_disease.png";
-        imageElement.src = safeFallback;
-        
-        // Search Wikipedia for the exact disease name (broader net)
-        let query = encodeURIComponent(item.disease); // "Mango Malformation"
-        fetch(`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${query}&gsrlimit=1&prop=pageimages&format=json&pithumbsize=500&origin=*`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.query && data.query.pages) {
-                let pages = data.query.pages;
-                let pageId = Object.keys(pages)[0];
-                if (pages[pageId] && pages[pageId].thumbnail) {
-                    let thumbUrl = pages[pageId].thumbnail.source;
-                    if (thumbUrl.startsWith("//")) {
-                        thumbUrl = "https:" + thumbUrl; 
-                    }
-                    // Test if Wikipedia image is valid, if so apply it.
-                    let tempImg = new Image();
-                    tempImg.onload = () => imageElement.src = thumbUrl;
-                    tempImg.src = thumbUrl;
-                }
+
+    try {
+        let { data, error } = await supabaseClient
+        .from("plant_diseases")
+        .select("*")
+        .eq("id", id)
+        .limit(1);
+
+        console.log("Fetched:", data);
+
+        if (error || !data || data.length === 0) {
+            console.warn("No disease found in database for ID:", id);
+            if (resEl) resEl.innerText = "Unknown Disease";
+            if (solEl) solEl.innerText = "No database entry matches this disease ID.";
+            let img = document.getElementById("diseaseImage");
+            if (img) img.src = "./crops/generic_disease.png";
+            return;
+        }
+
+        let item = data[0];
+
+        // SAFE SET
+        if (resEl) resEl.innerText = item.disease ?? "No Data";
+
+        let alertBadge = document.getElementById("alertBadge");
+        if (alertBadge) alertBadge.innerText = "Alert: " + (item.disease ?? "No Data");
+
+        if (solEl) {
+            solEl.innerText =
+                (item.solution ?? "No solution") +
+                "\n\n💊 Medicine: " + (item.medicine ?? "N/A");
+        }
+
+        let img = document.getElementById("diseaseImage");
+        if (img) {
+            let url = item.image || item.image_url || item.url || "";
+            if (typeof url === 'string') {
+                url = url.trim().replace(/^['"](.*)['"]$/, '$1'); // Clean accidental quotes
             }
-        }).catch(e => console.log("Wiki fetch API error", e));
-    }
-
-    if (url.endsWith("...") || url === "null" || url === "") {
-        console.warn("⚠️ Truncated URL. Spawning Wikipedia Auto-Fetcher...");
-        autoFetchWikipedia(img);
-    } else {
-        if (!url.startsWith("http") && !url.startsWith("data:")) {
-            if (url !== "null" && url !== "") {
-                url = `${SUPABASE_URL}/storage/v1/object/public/images/${url}`;
+            
+            if (url.endsWith("...") || url === "null" || url === "") {
+                console.warn("⚠️ Truncated URL. Spawning Wikipedia Auto-Fetcher...");
+                autoFetchWikipediaForDisease(img, item.disease);
+            } else {
+                if (!url.startsWith("http") && !url.startsWith("data:")) {
+                    if (url !== "null" && url !== "") {
+                        url = `${SUPABASE_URL}/storage/v1/object/public/images/${url}`;
+                    }
+                }
+                
+                img.removeAttribute("referrerpolicy"); // Cleaned conflicting policies 
+                
+                img.onerror = function() {
+                    console.warn("⚠️ Provided DB Link Blocked/404. Spawning Wikipedia Auto-Fetcher...");
+                    autoFetchWikipediaForDisease(this, item.disease);
+                };
+                img.src = url;
             }
         }
-        
-        img.removeAttribute("referrerpolicy"); // Cleaned conflicting policies 
-        
-        img.onerror = function() {
-            console.warn("⚠️ Provided DB Link Blocked/404. Spawning Wikipedia Auto-Fetcher...");
-            autoFetchWikipedia(this);
-        };
-        img.src = url;
+    } catch(e) {
+        console.error("Supabase load error:", e);
+        if (resEl) resEl.innerText = "Error Loading Data";
+        if (solEl) solEl.innerText = "Failed to query the database table: " + e.message;
     }
-}
 
-let confEl = document.getElementById("diseaseConfidence");
-if (confEl) confEl.innerText = localStorage.getItem("lastConfidence") || "94%";
+    let confEl = document.getElementById("diseaseConfidence");
+    if (confEl) confEl.innerText = localStorage.getItem("lastConfidence") || "94%";
 }
     // Apply language after data loads
     applyLanguage();

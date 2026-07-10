@@ -17,19 +17,34 @@
 
 <h1 id="problemTitle">Describe Crop Problem</h1>
 
-<div class="voice-container">
-
-<textarea id="problemText" placeholder="Explain your crop problem here..."></textarea>
-
-<button id="voiceBtn" title="Speak your problem">
-🎤
-</button>
-
+<!-- MODE TABS -->
+<div style="display:flex;gap:0;margin-bottom:18px;border-radius:10px;overflow:hidden;border:1px solid #ddd;">
+    <button id="tabText" onclick="switchTab('text')" style="flex:1;padding:10px;border:none;background:#7cb518;color:white;font-weight:600;cursor:pointer;font-size:14px;transition:0.2s;">📝 Text</button>
+    <button id="tabImage" onclick="switchTab('image')" style="flex:1;padding:10px;border:none;background:#f5f5f5;color:#555;font-weight:600;cursor:pointer;font-size:14px;transition:0.2s;">📷 Upload Image</button>
 </div>
 
-<input type="file" id="cropImage" accept="image/*">
+<!-- TEXT MODE -->
+<div id="textMode">
+    <div class="voice-container">
+        <textarea id="problemText" placeholder="Explain your crop problem here..."></textarea>
+        <button id="voiceBtn" title="Speak your problem">🎤</button>
+    </div>
+</div>
 
-<img id="previewImage" style="width:100%;margin-top:10px;border-radius:10px;display:none;">
+<!-- IMAGE MODE -->
+<div id="imageMode" style="display:none;">
+    <div id="dropZone" onclick="document.getElementById('cropImage').click()" style="border:2px dashed #7cb518;border-radius:14px;padding:30px 20px;text-align:center;cursor:pointer;background:#f9fff2;transition:background 0.2s;" ondragover="event.preventDefault();this.style.background='#eaf7d5'" ondragleave="this.style.background='#f9fff2'" ondrop="handleDrop(event)">
+        <div style="font-size:40px;margin-bottom:10px;">🌿</div>
+        <p style="margin:0;color:#555;font-size:14px;font-weight:500;">Click or drag & drop a crop image here</p>
+        <p style="margin:5px 0 0;color:#aaa;font-size:12px;">JPG, PNG supported</p>
+    </div>
+    <input type="file" id="cropImage" accept="image/*" style="display:none;">
+    <div id="previewBox" style="display:none;margin-top:14px;position:relative;">
+        <img id="previewImage" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;border:2px solid #7cb518;">
+        <button onclick="clearImage()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);color:white;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:16px;line-height:1;">✕</button>
+    </div>
+    <p id="imgFileName" style="text-align:center;font-size:12px;color:#888;margin-top:6px;"></p>
+</div>
 
 <button class="analyze-btn" onclick="analyzeProblem()">Analyze</button>
 
@@ -42,56 +57,174 @@
 <script src="script.js"></script>
 
 <script>
+// Clear previous analysis state so we start fresh when landing on this page
+localStorage.removeItem('imageAnalysisResult');
+localStorage.removeItem('uploadedImageBase64');
+localStorage.removeItem('selectedDiseaseId');
+
+/* TAB SWITCHING */
+function switchTab(mode) {
+    let textMode = document.getElementById('textMode');
+    let imageMode = document.getElementById('imageMode');
+    let tabText = document.getElementById('tabText');
+    let tabImage = document.getElementById('tabImage');
+    if (mode === 'text') {
+        textMode.style.display = 'block';
+        imageMode.style.display = 'none';
+        tabText.style.background = '#7cb518'; tabText.style.color = 'white';
+        tabImage.style.background = '#f5f5f5'; tabImage.style.color = '#555';
+    } else {
+        textMode.style.display = 'none';
+        imageMode.style.display = 'block';
+        tabText.style.background = '#f5f5f5'; tabText.style.color = '#555';
+        tabImage.style.background = '#7cb518'; tabImage.style.color = 'white';
+    }
+}
 
 /* IMAGE PREVIEW */
-
-document.getElementById("cropImage").addEventListener("change", function(){
-
-let file = this.files[0]
-
-if(file){
-
-let reader = new FileReader()
-
-reader.onload = function(e){
-
-let img = document.getElementById("previewImage")
-
-img.src = e.target.result
-img.style.display = "block"
-
+function showPreview(file) {
+    if (!file) return;
+    let reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('previewImage').src = e.target.result;
+        document.getElementById('previewBox').style.display = 'block';
+        document.getElementById('imgFileName').innerText = '📎 ' + file.name;
+        document.getElementById('dropZone').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
 }
 
-reader.readAsDataURL(file)
-
+function clearImage() {
+    document.getElementById('cropImage').value = '';
+    document.getElementById('previewBox').style.display = 'none';
+    document.getElementById('imgFileName').innerText = '';
+    document.getElementById('dropZone').style.display = 'block';
 }
 
-})
+function handleDrop(event) {
+    event.preventDefault();
+    document.getElementById('dropZone').style.background = '#f9fff2';
+    let file = event.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+        let dt = new DataTransfer();
+        dt.items.add(file);
+        document.getElementById('cropImage').files = dt.files;
+        showPreview(file);
+    }
+}
+
+document.getElementById('cropImage').addEventListener('change', function() {
+    if (this.files[0]) showPreview(this.files[0]);
+});
 
 /* VOICE INPUT */
-
-let voiceBtn = document.getElementById("voiceBtn")
-
-if('webkitSpeechRecognition' in window){
-
-let recognition = new webkitSpeechRecognition()
-
-recognition.continuous = false
-recognition.lang = "en-US"
-
-voiceBtn.onclick = function(){
-recognition.start()
+let voiceBtn = document.getElementById('voiceBtn');
+if ('webkitSpeechRecognition' in window) {
+    let recognition = new webkitSpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = 'en-US';
+    voiceBtn.onclick = function() { recognition.start(); voiceBtn.innerText = '🔴'; };
+    recognition.onresult = function(event) {
+        document.getElementById('problemText').value = event.results[0][0].transcript;
+        voiceBtn.innerText = '🎤';
+    };
+    recognition.onerror = function() { voiceBtn.innerText = '🎤'; };
 }
 
-recognition.onresult = function(event){
+/* OVERRIDE analyzeProblem for IMAGE MODE */
+const _originalAnalyze = window.analyzeProblem;
 
-let speech = event.results[0][0].transcript
+window.analyzeProblem = async function() {
+    let imageInput = document.getElementById('cropImage');
+    let imageMode = document.getElementById('imageMode');
+    let isImageMode = imageMode && imageMode.style.display !== 'none';
+    let btn = document.querySelector('.analyze-btn');
 
-document.getElementById("problemText").value = speech
+    if (isImageMode && imageInput.files.length > 0) {
+        if (btn) { btn.innerText = 'Analyzing...'; btn.disabled = true; }
 
-}
+        let formData = new FormData();
+        formData.append('image', imageInput.files[0]);
+        formData.append('language', localStorage.getItem('lang') || 'en');
 
-}
+        try {
+            let res = await fetch('http://localhost:5000/api/analyze', { method: 'POST', body: formData });
+            let result = await res.json();
+
+            // Store result like text analysis does
+            localStorage.setItem('lastConfidence', result.confidence + '%');
+            let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            history.unshift({
+                problem: '📷 Image uploaded: ' + imageInput.files[0].name,
+                disease: result.disease,
+                confidence: result.confidence + '%',
+                timestamp: new Date().toLocaleString()
+            });
+            if (history.length > 15) history.pop();
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+
+            // Store disease result so dashboard can show it
+            localStorage.setItem('imageAnalysisResult', JSON.stringify(result));
+            
+            let previewImg = document.getElementById('previewImage');
+            if (previewImg && previewImg.src) {
+                localStorage.setItem('uploadedImageBase64', previewImg.src);
+            }
+            
+            localStorage.removeItem('selectedDiseaseId'); // clear text mode selection
+
+            window.location.href = 'dashboard.html';
+        } catch(e) {
+            alert('Image analysis failed. Please try text mode.');
+            if (btn) { btn.innerText = 'Analyze'; btn.disabled = false; }
+        }
+    } else if (!isImageMode) {
+        let textEl = document.getElementById("problemText");
+        let question = textEl ? textEl.value.trim() : "";
+        
+        if (!question) {
+            alert("Please describe your crop problem");
+            return;
+        }
+
+        if (btn) { btn.innerText = 'Analyzing text...'; btn.disabled = true; }
+
+        try {
+            let res = await fetch('http://localhost:5000/api/ask-ai', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    question: question,
+                    language: localStorage.getItem('lang') || 'en'
+                }) 
+            });
+            let result = await res.json();
+            
+            // Store result like image analysis does
+            localStorage.setItem('lastConfidence', result.confidence + '%');
+            let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            history.unshift({
+                problem: '📝 Text: ' + question,
+                disease: result.disease,
+                confidence: result.confidence + '%',
+                timestamp: new Date().toLocaleString()
+            });
+            if (history.length > 15) history.pop();
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+
+            localStorage.setItem('imageAnalysisResult', JSON.stringify(result));
+            localStorage.removeItem('selectedDiseaseId');
+
+            window.location.href = 'dashboard.html';
+        } catch(e) {
+            alert('Text analysis failed. Please try again.');
+            if (btn) { btn.innerText = 'Analyze'; btn.disabled = false; }
+        }
+    } else {
+        // Fall back
+        if (typeof _originalAnalyze === 'function') _originalAnalyze();
+    }
+};
 
 </script>
 

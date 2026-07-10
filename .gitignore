@@ -5,3 +5,6 @@ build/
 .vscode/
 .idea/
 *.log
+python_backend/venv/
+*.sqlite
+uploads/
