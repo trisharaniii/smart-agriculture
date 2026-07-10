@@ -912,87 +912,16 @@ function translateDynamicDiseaseResults(lang) {
                 let medPrefix = l === 'te' ? "ఔషధం:" : (l === 'hi' ? "दवा:" : "Medicine:");
                 sE.innerText = s + "\n\n💊 " + medPrefix + " " + m;
                 
-                // Text to speech implementation
-                sE.style.cursor = "pointer";
-                sE.title = "Click to listen to the solution";
-                sE.onclick = function() {
-                    window.speechSynthesis.cancel();
-                    let problemTitle = document.getElementById("diseaseResult") ? document.getElementById("diseaseResult").innerText : "";
-                    let fullT = problemTitle + ". " + this.innerText;
-                    speakTextSafely(fullT, l);
-                };
-                
-                if (!document.getElementById("speakHint")) {
-                    let hint = document.createElement("div");
-                    hint.id = "speakHint";
-                    hint.innerHTML = "🔊 <i>Click text to listen</i>";
-                    hint.style.fontSize = "12px";
-                    hint.style.color = "#2ecc71";
-                    hint.style.marginTop = "8px";
-                    hint.style.cursor = "pointer";
-                    hint.onclick = () => sE.click();
-                    sE.parentNode.appendChild(hint);
-                }
+                sE.style.cursor = "default";
+                sE.title = "";
+                sE.onclick = null;
+                let hint = document.getElementById("speakHint");
+                if (hint) hint.remove();
             }
         }
     } catch (e) { console.error("Translation fail", e); }
 }
 
-function readFullDashboard() {
-    window.speechSynthesis.cancel();
-    let lang = localStorage.getItem("lang") || "en";
-    let disObj = document.getElementById("diseaseResult");
-    let solObj = document.getElementById("solutionText");
-    
-    let dis = disObj ? disObj.innerText : "";
-    let sol = solObj ? solObj.innerText : "";
-    
-    let dbTitles = {
-        en: ["Disease Detected", "Solution", "Soil Health", "Nitrogen", "Phosphorus", "Potassium"],
-        hi: ["बीमारी का पता चला", "समाधान", "मृदा स्वास्थ्य स्कोर", "नाइट्रोजन", "फास्फोरस", "पोटेशियम"],
-        te: ["వ్యాధి గుర్తింపు", "పరిష్కారం", "నేల ఆరోగ్య స్కోర్", "నత్రజని", "భాస్వరం", "పొటాషియం"]
-    };
-    
-    let t = dbTitles[lang] || dbTitles.en;
-    
-    let shortSol = sol.replace(/💊/g, "").substring(0, 100).trim();
-    let fullText = `${t[0]}: ${dis}. ${t[1]}: ${shortSol}. ${t[2]} 70. ${t[3]} 71. ${t[4]} 55. ${t[5]} 42`;
-    
-    speakTextSafely(fullText, lang);
-}
-
-function speakTextSafely(text, langCode) {
-    if (window.globalAudio) window.globalAudio.pause();
-    window.speechSynthesis.cancel();
-
-    let voices = window.speechSynthesis.getVoices();
-    let hasVoice = false;
-    let targetLangCode = 'en-US';
-
-    if (langCode === 'te') {
-        hasVoice = voices.some(v => v.lang.includes('te'));
-        targetLangCode = 'te-IN';
-    } else if (langCode === 'hi') {
-        hasVoice = voices.some(v => v.lang.includes('hi'));
-        targetLangCode = 'hi-IN';
-    } else {
-        hasVoice = true; // English is virtually always available
-    }
-
-    if (langCode !== 'en' && !hasVoice) {
-        // Windows/OS is completely missing the Indian voice! Fallback to Google Cloud Audio Blob!
-        console.warn("Local OS is missing the language pack. Streaming Google Cloud MP3.");
-        let safeText = text.substring(0, 195);
-        let url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=${encodeURIComponent(safeText)}&tl=${langCode}`;
-        window.globalAudio = new Audio(url);
-        window.globalAudio.play().catch(e => console.error("Cloud Audio blocked:", e));
-        return;
-    }
-
-    let utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = targetLangCode;
-    window.speechSynthesis.speak(utterance);
-}
 
 function changeLanguage() {
     let langEl = document.getElementById("language");
@@ -1146,87 +1075,6 @@ function loadHistory() {
         `;
         container.appendChild(card);
     });
-}
-
-/* ================= SPEECH SYNTHESIS & VOICE ASSISTANT ================= */
-function bindSpeechToSolution(solEl, textToSpeak, langCode) {
-    if (!solEl) return;
-    solEl.style.cursor = "pointer";
-    solEl.title = "Click to listen to the solution";
-    solEl.onclick = function() {
-        window.speechSynthesis.cancel();
-        let problemTitle = document.getElementById("diseaseResult") ? 
-            document.getElementById("diseaseResult").innerText : "";
-        let fullText = problemTitle + ". " + textToSpeak;
-        speakTextSafely(fullText, langCode);
-    };
-
-    if (!document.getElementById("speakHint")) {
-        let hint = document.createElement("div");
-        hint.id = "speakHint";
-        hint.innerHTML = "🔊 <i>Click text to listen</i>";
-        hint.style.fontSize = "12px";
-        hint.style.color = "#2ecc71";
-        hint.style.marginTop = "8px";
-        hint.style.cursor = "pointer";
-        hint.onclick = () => solEl.click();
-        solEl.parentNode.appendChild(hint);
-    }
-}
-
-function readFullDashboard() {
-    window.speechSynthesis.cancel();
-    let lang = localStorage.getItem("lang") || "en";
-    let disObj = document.getElementById("diseaseResult");
-    let solObj = document.getElementById("solutionText");
-    
-    let dis = disObj ? disObj.innerText : "";
-    let sol = solObj ? solObj.innerText : "";
-    
-    let dbTitles = {
-        en: ["Disease Detected", "Solution", "Soil Health", "Nitrogen", "Phosphorus", "Potassium"],
-        hi: ["बीमारी का पता चला", "समाधान", "मृदा स्वास्थ्य स्कोर", "नाइट्रोजन", "फास्फोरस", "पोटेशियम"],
-        te: ["వ్యాధి గుర్తింపు", "పరిష్కారం", "నేల ఆరోగ్య స్కోర్", "నత్రజని", "భాస్వరం", "పొటాషియం"]
-    };
-    
-    let t = dbTitles[lang] || dbTitles.en;
-    
-    let shortSol = sol.replace(/💊/g, "").substring(0, 100).trim();
-    let fullText = `${t[0]}: ${dis}. ${t[1]}: ${shortSol}. ${t[2]} 70. ${t[3]} 71. ${t[4]} 55. ${t[5]} 42`;
-    
-    speakTextSafely(fullText, lang);
-}
-
-function speakTextSafely(text, langCode) {
-    if (window.globalAudio) window.globalAudio.pause();
-    window.speechSynthesis.cancel();
-
-    if (langCode === 'te' || langCode === 'hi') {
-        console.log(`Using Google Translate TTS for ${langCode}`);
-        let safeText = text.substring(0, 195);
-        let url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${langCode}&q=${encodeURIComponent(safeText)}`;
-        
-        let audio = new Audio();
-        audio.referrerPolicy = "no-referrer";
-        audio.src = url;
-        window.globalAudio = audio;
-        
-        window.globalAudio.play().catch(e => {
-            console.warn("googleapis TTS failed, trying translate.google.com fallback:", e);
-            let fbUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=${encodeURIComponent(safeText)}&tl=${langCode}`;
-            let fbAudio = new Audio();
-            fbAudio.referrerPolicy = "no-referrer";
-            fbAudio.src = fbUrl;
-            window.globalAudio = fbAudio;
-            window.globalAudio.play().catch(err => console.error("Cloud Audio completely blocked:", err));
-        });
-        return;
-    }
-
-    // Default to browser speech synthesis for English
-    let utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    window.speechSynthesis.speak(utterance);
 }
 
 /* ================= PAGE LOAD ================= */
